@@ -1,11 +1,12 @@
 """decide.py - send league state to Gemini, get back a structured decision."""
 import os
 import json
+import time
 from typing import Literal, Optional
 
 from dotenv import load_dotenv
 from google import genai
-from google.genai import types
+from google.genai import types, errors
 from pydantic import BaseModel, Field
 
 load_dotenv()
@@ -65,17 +66,23 @@ def build_prompt(state, error=None):
     return msg
 
 
-def decide(state, error=None):
-    resp = client.models.generate_content(
-        model=MODEL,
-        contents=build_prompt(state, error),
-        config=types.GenerateContentConfig(
-            system_instruction=SYSTEM,
-            response_mime_type="application/json",
-            response_schema=Decision,
-        ),
-    )
-    return resp.parsed  # Decision instance
+def decide(state, error=None, attempts=5):
+    for i in range(attempts):
+        try:
+            resp = client.models.generate_content(
+                model=MODEL,
+                contents=build_prompt(state, error),
+                config=types.GenerateContentConfig(
+                    system_instruction=SYSTEM,
+                    response_mime_type="application/json",
+                    response_schema=Decision,
+                ),
+            )
+            return resp.parsed
+        except errors.ServerError:  # 503 overload, retry
+            if i == attempts - 1:
+                raise
+            time.sleep(30 * 2 ** i)  # 30s, 1m, 2m, 4m
 
 
 if __name__ == "__main__":
