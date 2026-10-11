@@ -1,0 +1,6 @@
+espn-api
+google-genai
+python-dotenv
+requests
+pydantic
+tzdata

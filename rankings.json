@@ -1,0 +1,402 @@
+[
+  {
+    "rank": 1,
+    "name": "Nikola Jokic",
+    "reason": "Unrivaled triple-double engine with elite fantasy scoring and durability."
+  },
+  {
+    "rank": 2,
+    "name": "Victor Wembanyama",
+    "reason": "Unprecedented defensive stock upside with massive scoring and rebounding."
+  },
+  {
+    "rank": 3,
+    "name": "Luka Doncic",
+    "reason": "Tremendous usage, scoring, and assist volume ideal for head-to-head points."
+  },
+  {
+    "rank": 4,
+    "name": "Shai Gilgeous-Alexander",
+    "reason": "Hyper-efficient scoring guard with outstanding steals and minimal turnovers."
+  },
+  {
+    "rank": 5,
+    "name": "Giannis Antetokounmpo",
+    "reason": "Dominant paint scoring, rebounding, and block production."
+  },
+  {
+    "rank": 6,
+    "name": "Jalen Johnson",
+    "reason": "High-motor breakout forward providing massive multi-category contributions."
+  },
+  {
+    "rank": 7,
+    "name": "Anthony Davis",
+    "reason": "Elite per-game monster in points, boards, and rim protection."
+  },
+  {
+    "rank": 8,
+    "name": "Tyrese Haliburton",
+    "reason": "Elite assist generator and scorer with premier playmaking volume."
+  },
+  {
+    "rank": 9,
+    "name": "Jayson Tatum",
+    "reason": "Dependable high-usage forward with balanced scoring and peripheral stats."
+  },
+  {
+    "rank": 10,
+    "name": "Anthony Edwards",
+    "reason": "Primary scoring weapon with high three-point volume and strong steals."
+  },
+  {
+    "rank": 11,
+    "name": "Cade Cunningham",
+    "reason": "Heavy engine who fills the stat sheet with points, boards, and dimes."
+  },
+  {
+    "rank": 12,
+    "name": "Domantas Sabonis",
+    "reason": "Consistent double-double and triple-double machine with great passing."
+  },
+  {
+    "rank": 13,
+    "name": "Donovan Mitchell",
+    "reason": "Explosive scorer with solid assists and strong perimeter volume."
+  },
+  {
+    "rank": 14,
+    "name": "LaMelo Ball",
+    "reason": "Electric playmaking guard capable of high ceiling fantasy explosions."
+  },
+  {
+    "rank": 15,
+    "name": "Josh Giddey",
+    "reason": "Versatile guard delivering across points, rebounds, and assists."
+  },
+  {
+    "rank": 16,
+    "name": "Cooper Flagg",
+    "reason": "Phenomenal rookie forward with diverse stat sheet stuffing potential."
+  },
+  {
+    "rank": 17,
+    "name": "Kawhi Leonard",
+    "reason": "High per-minute efficiency and defensive stocks tailored for playoff peaks."
+  },
+  {
+    "rank": 18,
+    "name": "Tyrese Maxey",
+    "reason": "Fast-paced scoring guard with high minutes and low turnover rates."
+  },
+  {
+    "rank": 19,
+    "name": "Karl-Anthony Towns",
+    "reason": "High-efficiency stretch big pairing solid boards with perimeter scoring."
+  },
+  {
+    "rank": 20,
+    "name": "Trae Young",
+    "reason": "Top-tier assist generator and high-volume perimeter scorer."
+  },
+  {
+    "rank": 21,
+    "name": "Scottie Barnes",
+    "reason": "All-around contributor accumulating stats across all five major categories."
+  },
+  {
+    "rank": 22,
+    "name": "Evan Mobley",
+    "reason": "Dual forward/center eligibility offering double-doubles and reliable blocks."
+  },
+  {
+    "rank": 23,
+    "name": "Austin Reaves",
+    "reason": "Steadily rising playmaker and efficient scorer across primary guard spots."
+  },
+  {
+    "rank": 24,
+    "name": "Jalen Brunson",
+    "reason": "Consistently high offensive floor with stellar scoring and playmaking."
+  },
+  {
+    "rank": 25,
+    "name": "Devin Booker",
+    "reason": "Premier scoring guard with strong playmaking and shooting efficiency."
+  },
+  {
+    "rank": 26,
+    "name": "Stephen Curry",
+    "reason": "Unmatched three-point production and dependable offensive focal point."
+  },
+  {
+    "rank": 27,
+    "name": "Kevin Durant",
+    "reason": "Elite shooting splits, scoring, and underrated defensive shot-blocking."
+  },
+  {
+    "rank": 28,
+    "name": "Alperen Sengun",
+    "reason": "Offensive hub at center delivering assists, rebounds, and inside points."
+  },
+  {
+    "rank": 29,
+    "name": "Jamal Murray",
+    "reason": "Proven playoff performer with well-rounded guard scoring and assists."
+  },
+  {
+    "rank": 30,
+    "name": "LeBron James",
+    "reason": "Timeless facilitator generating strong numbers in points, rebounds, and dimes."
+  },
+  {
+    "rank": 31,
+    "name": "Jalen Duren",
+    "reason": "Ascending young center posting double-doubles with high field-goal percentage."
+  },
+  {
+    "rank": 32,
+    "name": "James Harden",
+    "reason": "High-floor floor general generating assists, points, and defensive stocks."
+  },
+  {
+    "rank": 33,
+    "name": "Pascal Siakam",
+    "reason": "Reliable two-way forward with consistent scoring and glass work."
+  },
+  {
+    "rank": 34,
+    "name": "Jalen Williams",
+    "reason": "Efficient wing scorer and defensive menace across multiple positions."
+  },
+  {
+    "rank": 35,
+    "name": "Amen Thompson",
+    "reason": "Elite athletic wing racking up high defensive stocks and rebounds."
+  },
+  {
+    "rank": 36,
+    "name": "Deni Avdija",
+    "reason": "Expanding offensive role providing versatile stats and ball handling."
+  },
+  {
+    "rank": 37,
+    "name": "Darius Garland",
+    "reason": "Dynamic lead guard producing high assist numbers and perimeter scoring."
+  },
+  {
+    "rank": 38,
+    "name": "Kyrie Irving",
+    "reason": "Clutch, hyper-efficient three-level scorer with strong guard metrics."
+  },
+  {
+    "rank": 39,
+    "name": "Bam Adebayo",
+    "reason": "Stalwart defensive center adding playmaking and consistent rebounding."
+  },
+  {
+    "rank": 40,
+    "name": "Zion Williamson",
+    "reason": "Dominant interior scoring force generating high field goals made."
+  },
+  {
+    "rank": 41,
+    "name": "Dejounte Murray",
+    "reason": "Two-way guard providing high assists, rebounds, and steal rates."
+  },
+  {
+    "rank": 42,
+    "name": "Paolo Banchero",
+    "reason": "Primary offensive initiator with strong scoring and rebounding ceiling."
+  },
+  {
+    "rank": 43,
+    "name": "Tyler Herro",
+    "reason": "High-volume scorer and shooter with solid secondary assist numbers."
+  },
+  {
+    "rank": 44,
+    "name": "Michael Porter Jr.",
+    "reason": "Pure perimeter shooter pairing high efficiency with steady rebounding."
+  },
+  {
+    "rank": 45,
+    "name": "Franz Wagner",
+    "reason": "Well-rounded forward offering steady scoring, playmaking, and defense."
+  },
+  {
+    "rank": 46,
+    "name": "Lauri Markkanen",
+    "reason": "Premier stretch big offering efficient scoring and reliable boards."
+  },
+  {
+    "rank": 47,
+    "name": "Damian Lillard",
+    "reason": "Elite perimeter scorer and playmaker with heavy free-throw volume."
+  },
+  {
+    "rank": 48,
+    "name": "Jaylen Brown",
+    "reason": "Athletic scoring wing with solid points, rebounds, and defensive presence."
+  },
+  {
+    "rank": 49,
+    "name": "Desmond Bane",
+    "reason": "Sharpshooting wing contributor with solid peripheral guard numbers."
+  },
+  {
+    "rank": 50,
+    "name": "De'Aaron Fox",
+    "reason": "Fast-break weapon with strong scoring, playmaking, and steals."
+  },
+  {
+    "rank": 51,
+    "name": "Walker Kessler",
+    "reason": "Elite block specialist dominating the paint in limited minutes."
+  },
+  {
+    "rank": 52,
+    "name": "Joel Embiid",
+    "reason": "Dominant per-minute points league producer when healthy on the floor."
+  },
+  {
+    "rank": 53,
+    "name": "Jaren Jackson Jr.",
+    "reason": "Premier shot-blocking big who stretches the floor with triples."
+  },
+  {
+    "rank": 54,
+    "name": "Derrick White",
+    "reason": "Ultimate glue guard producing blocks, steals, threes, and low turnovers."
+  },
+  {
+    "rank": 55,
+    "name": "Brandon Miller",
+    "reason": "Emerging scoring wing with heavy three-point and rebounding upside."
+  },
+  {
+    "rank": 56,
+    "name": "Julius Randle",
+    "reason": "Bruising forward providing double-double potential and secondary passing."
+  },
+  {
+    "rank": 57,
+    "name": "Chet Holmgren",
+    "reason": "Versatile rim protector who contributes blocks, threes, and efficiency."
+  },
+  {
+    "rank": 58,
+    "name": "Ja Morant",
+    "reason": "Explosive paint scorer and playmaker driving high points leagues upside."
+  },
+  {
+    "rank": 59,
+    "name": "Stephon Castle",
+    "reason": "Promising young playmaker providing solid perimeter production and defense."
+  },
+  {
+    "rank": 60,
+    "name": "Jarrett Allen",
+    "reason": "High-efficiency double-double anchor with strong rim defense."
+  },
+  {
+    "rank": 61,
+    "name": "Keyonte George",
+    "reason": "High-volume guard handling significant playmaking and perimeter shots."
+  },
+  {
+    "rank": 62,
+    "name": "Trey Murphy III",
+    "reason": "Three-point marksman offering efficient scoring and sneaky defensive stocks."
+  },
+  {
+    "rank": 63,
+    "name": "Alex Sarr",
+    "reason": "Young big providing high defensive stock ceiling and rebounding."
+  },
+  {
+    "rank": 64,
+    "name": "Norman Powell",
+    "reason": "Reliable scoring guard capable of putting up efficient scoring bursts."
+  },
+  {
+    "rank": 65,
+    "name": "Dyson Daniels",
+    "reason": "Elite point-of-attack defender who piles up premium four-point steals."
+  },
+  {
+    "rank": 66,
+    "name": "Paul George",
+    "reason": "Veteran two-way wing bringing high per-game scoring and stocks."
+  },
+  {
+    "rank": 67,
+    "name": "Ty Jerome",
+    "reason": "Surging guard providing efficient playmaking and scoring off the bench."
+  },
+  {
+    "rank": 68,
+    "name": "Naz Reid",
+    "reason": "Skilled scoring big with stretch ability and solid per-minute production."
+  },
+  {
+    "rank": 69,
+    "name": "Ivica Zubac",
+    "reason": "Durable traditional center securing steady double-doubles and blocks."
+  },
+  {
+    "rank": 70,
+    "name": "Kon Knueppel",
+    "reason": "Skilled wing producer capable of spacing the floor and scoring."
+  },
+  {
+    "rank": 71,
+    "name": "Caleb Wilson",
+    "reason": "Athletic forward providing high motor, rebounding, and defensive stats."
+  },
+  {
+    "rank": 72,
+    "name": "Immanuel Quickley",
+    "reason": "High-energy floor general with strong scoring and playmaking ability."
+  },
+  {
+    "rank": 73,
+    "name": "Onyeka Okongwu",
+    "reason": "Efficient interior finisher and shot-blocker with upside."
+  },
+  {
+    "rank": 74,
+    "name": "Cameron Boozer",
+    "reason": "Highly productive frontcourt rookie filling boards, points, and stocks."
+  },
+  {
+    "rank": 75,
+    "name": "Rudy Gobert",
+    "reason": "Premier defensive anchor guaranteeing rebounds and block production."
+  },
+  {
+    "rank": 76,
+    "name": "Nickeil Alexander-Walker",
+    "reason": "Solid two-way guard producing steady three-point and defensive output."
+  },
+  {
+    "rank": 77,
+    "name": "Miles Bridges",
+    "reason": "Versatile forward soaking up heavy minutes, points, and rebounds."
+  },
+  {
+    "rank": 78,
+    "name": "Donovan Clingan",
+    "reason": "Dominant paint presence providing rapid rebounding and block rates."
+  },
+  {
+    "rank": 79,
+    "name": "Kel'el Ware",
+    "reason": "High-upside athletic center generating blocks, rebounds, and putbacks."
+  },
+  {
+    "rank": 80,
+    "name": "Kristaps Porzingis",
+    "reason": "High-ceiling stretch big pairing elite blocks with perimeter scoring."
+  }
+]

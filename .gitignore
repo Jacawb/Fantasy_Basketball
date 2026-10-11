@@ -1,0 +1,4 @@
+.env
+venv/
+state.json
+__pycache__/
