@@ -1,0 +1,17 @@
+name: daily-bot
+on:
+  workflow_dispatch:   # manual run button only, for testing
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - run: python state.py
+        env:
+          LEAGUE_ID: ${{ secrets.LEAGUE_ID }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+          ESPN_S2: ${{ secrets.ESPN_S2 }}
+          SWID: ${{ secrets.SWID }}
