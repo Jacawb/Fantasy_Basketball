@@ -91,7 +91,7 @@ def decide(state, error=None):
                 if i < tries - 1:
                     time.sleep(min(60 * 2 ** i, 600))
             except errors.ClientError as e:
-                if e.code == 429:  # quota out, retrying won't help
+                if e.code in (404, 429):  # bad model name or quota out, skip
                     last_err = e
                     break
                 raise
