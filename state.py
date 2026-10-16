@@ -15,6 +15,7 @@ PT = ZoneInfo("America/Los_Angeles")
 FA_COUNT = 40
 ADDS_LIMIT = 7
 SLOTS = {"PG", "SG", "SF", "PF", "C", "G", "F", "UTIL", "BE", "IR"}
+SLOT_FIX = {"UT": "UTIL"}  # espn-api name -> ours
 
 # ESPN site API abbrevs -> espn-api abbrevs
 ABBR_FIX = {"GS": "GSW", "NY": "NYK", "SA": "SAS", "NO": "NOP", "UTAH": "UTA",
@@ -56,8 +57,8 @@ def player_info(p, games):
         "name": p.name,
         "team": p.proTeam,
         "pos": p.position,
-        "eligible": [s for s in p.eligibleSlots if s in SLOTS],
-        "slot": getattr(p, "lineupSlot", None),
+        "eligible": [SLOT_FIX.get(s, s) for s in p.eligibleSlots if SLOT_FIX.get(s, s) in SLOTS],
+        "slot": SLOT_FIX.get(getattr(p, "lineupSlot", None), getattr(p, "lineupSlot", None)),
         "injury": p.injuryStatus,
         "avg": round(p.avg_points or 0, 1),
         "proj_avg": round(getattr(p, "projected_avg_points", 0) or 0, 1),
