@@ -2,6 +2,7 @@
 import os
 import traceback
 
+import decide as dmod
 from notify import post
 from state import gather
 from validate import decide_valid
@@ -49,6 +50,8 @@ def format_log(d, state, changes):
         lines.append(f"🤝 Trade {t.transaction_id}: {t.action}")
     if len(lines) == (2 if "my_score" in m else 1):
         lines.append("No moves today")
+    if dmod.last_model != dmod.MODELS[0]:
+        lines.append(f"⚠️ Fallback model used: {dmod.last_model}")
     lines.append(f"\n> {d.reasoning}")
     if DRY_RUN:
         lines.insert(0, "🧪 DRY RUN (nothing submitted)")
