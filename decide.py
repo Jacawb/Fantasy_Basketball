@@ -6,12 +6,14 @@ from typing import Literal, Optional
 
 from dotenv import load_dotenv
 from google import genai
-from google.genai import types, errors
+from google.genai import errors, types
 from pydantic import BaseModel, Field
 
 load_dotenv()
-MODEL = os.getenv("GEMINI_MODEL")
+# Comma-separated: primary first, then fallbacks
+MODELS = [m.strip() for m in os.getenv("GEMINI_MODEL").split(",") if m.strip()]
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+last_model = None  # which model made the latest decision
 
 Slot = Literal["PG", "SG", "SF", "PF", "C", "G", "F", "UTIL", "BE", "IR"]
 
@@ -66,27 +68,39 @@ def build_prompt(state, error=None):
     return msg
 
 
-def decide(state, error=None, attempts=5):
-    for i in range(attempts):
-        try:
-            resp = client.models.generate_content(
-                model=MODEL,
-                contents=build_prompt(state, error),
-                config=types.GenerateContentConfig(
-                    system_instruction=SYSTEM,
-                    response_mime_type="application/json",
-                    response_schema=Decision,
-                ),
-            )
-            return resp.parsed
-        except errors.ServerError:  # 503 overload, retry
-            if i == attempts - 1:
+def decide(state, error=None):
+    global last_model
+    last_err = None
+    for idx, model in enumerate(MODELS):
+        tries = 7 if idx == 0 else 3  # primary gets ~35 min, fallbacks ~3 min
+        for i in range(tries):
+            try:
+                resp = client.models.generate_content(
+                    model=model,
+                    contents=build_prompt(state, error),
+                    config=types.GenerateContentConfig(
+                        system_instruction=SYSTEM,
+                        response_mime_type="application/json",
+                        response_schema=Decision,
+                    ),
+                )
+                last_model = model
+                return resp.parsed
+            except errors.ServerError as e:  # 503 overload, wait and retry
+                last_err = e
+                if i < tries - 1:
+                    time.sleep(min(60 * 2 ** i, 600))
+            except errors.ClientError as e:
+                if e.code == 429:  # quota out, retrying won't help
+                    last_err = e
+                    break
                 raise
-            time.sleep(30 * 2 ** i)  # 30s, 1m, 2m, 4m
+    raise last_err  # every model failed
 
 
 if __name__ == "__main__":
     # Dry run: no writes to ESPN
     from state import gather
     d = decide(gather())
+    print(f"model: {last_model}")
     print(json.dumps(d.model_dump(), indent=2))
