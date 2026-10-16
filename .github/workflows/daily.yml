@@ -1,8 +1,8 @@
 name: daily-bot
 on:
   workflow_dispatch:   # manual run button
-  # schedule:          # uncomment after the draft
-  #   - cron: "0 15 * * *"   # 8 AM PDT / 7 AM PST
+  schedule:          # uncomment after the draft
+    - cron: "0 15 * * *"   # 8 AM PDT / 7 AM PST
 jobs:
   run:
     runs-on: ubuntu-24.04
