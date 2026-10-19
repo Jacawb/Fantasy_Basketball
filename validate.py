@@ -59,8 +59,8 @@ def validate(d, state):
         if a.slot in STARTERS and p["injury"] == "OUT":
             errs.append(f"{p['name']} is OUT and can't start")
 
-    # Trades - TODO: confirm type string once a real offer exists
-    offered = {str(t["id"]) for t in state["pending"] if "TRADE" in str(t["type"])}
+    # Trades (pending is already filtered to offers sent to us)
+    offered = {str(t["id"]) for t in state["pending"]}
     for t in d.trade_responses:
         if t.transaction_id not in offered:
             errs.append(f"trade {t.transaction_id} is not a pending offer")
