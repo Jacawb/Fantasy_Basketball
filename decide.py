@@ -55,7 +55,7 @@ TRANSACTIONS:
 - At most 7 adds per weekly matchup. "adds_used" shows how many are used this matchup.
 - At most one add per day. An add requires a drop if the roster is full.
 - Waiver period is 1 day. Dropped players go on waivers.
-- You may accept or decline trades offered to you. You cannot propose trades.
+- You may accept or decline trades offered to you (listed in "pending", with "you_get" and "you_give"). You cannot propose trades.
 
 OUTPUT: assign a slot to every player on the roster (after your add/drop, if any).
 Each starting slot holds at most one player; BE holds up to 3, IR up to 1."""
