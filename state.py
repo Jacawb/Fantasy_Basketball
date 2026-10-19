@@ -96,15 +96,31 @@ def adds_used(data, period):
     return totals.get(str(period), 0)
 
 
-def pending(data):
-    # TODO: verify key/shape after draft once a real claim or trade exists
+def trade_offers(data, league, games):
+    """Pending trade offers sent to us, with player info for both sides."""
+    players = {p.playerId: p for t in league.teams for p in t.roster}
+    teams = {t.team_id: t.team_name for t in league.teams}
     txs = data.get("pendingTransactions") or data.get("transactions") or []
     out = []
     for t in txs:
-        if t.get("status") != "PENDING":
+        if t.get("type") != "TRADE_PROPOSAL" or t.get("status") != "PENDING":
             continue
-        out.append({"id": t.get("id"), "type": t.get("type"),
-                    "teamId": t.get("teamId"), "items": t.get("items", [])})
+        # skip our own offers and ones we already answered
+        if t.get("teamId") == TEAM_ID or str(TEAM_ID) in (t.get("teamActions") or {}):
+            continue
+        items = t.get("items", [])
+
+        def side(key):
+            out_ = []
+            for i in items:
+                if i.get(key) == TEAM_ID and i["playerId"] in players:
+                    info = player_info(players[i["playerId"]], games)
+                    info.pop("slot")  # their slot on the other team, not useful
+                    out_.append(info)
+            return out_
+
+        out.append({"id": t["id"], "from_team": teams.get(t.get("teamId")),
+                    "you_get": side("toTeamId"), "you_give": side("fromTeamId")})
     return out
 
 
@@ -123,7 +139,7 @@ def gather():
         "matchup": matchup(league),
         "roster": [player_info(p, games) for p in me.roster],
         "free_agents": [player_info(p, games) for p in league.free_agents(size=FA_COUNT)],
-        "pending": pending(data),
+        "pending": trade_offers(data, league, games),
         "teams_playing_today": sorted(games),
     }
 
