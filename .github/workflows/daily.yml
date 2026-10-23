@@ -1,18 +1,36 @@
 name: daily-bot
 on:
-  workflow_dispatch:   # manual run button
+  workflow_dispatch:   # manual run button; cron-job.org also triggers this at 8 AM PT
   schedule:
-    - cron: "0 15 * * *"   # 8 AM PDT / 7 AM PST
+    - cron: "0 15 * * *"   # backup - GitHub runs this hours late, skipped if today already ran
+permissions:
+  actions: read    # lets the guard list earlier runs
+  contents: read
 jobs:
   run:
     runs-on: ubuntu-24.04
     timeout-minutes: 90   # kill a hung run instead of waiting 6h
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      # Scheduled backup only: skip if a run already succeeded today (Pacific time)
+      - id: guard
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          since=$(date -u -d "TZ=\"America/Los_Angeles\" $(TZ=America/Los_Angeles date +%F)" +%FT%TZ)
+          done=$(gh run list -R "$GITHUB_REPOSITORY" --workflow daily.yml --status success \
+                 --created ">=$since" --json databaseId --jq length)
+          echo "successful runs since $since: $done"
+          if [ "$done" -gt 0 ]; then echo "skip=true" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.guard.outputs.skip != 'true'
+        uses: actions/checkout@v5
+      - if: steps.guard.outputs.skip != 'true'
+        uses: actions/setup-python@v6
         with: { python-version: "3.12" }
-      - run: pip install -r requirements.txt
-      - run: python bot.py
+      - if: steps.guard.outputs.skip != 'true'
+        run: pip install -r requirements.txt
+      - if: steps.guard.outputs.skip != 'true'
+        run: python bot.py
         env:
           LEAGUE_ID: ${{ secrets.LEAGUE_ID }}
           TEAM_ID: ${{ secrets.TEAM_ID }}
