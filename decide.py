@@ -53,6 +53,7 @@ ROSTER (13): PG, SG, SF, PF, C, G, F, UTIL, UTIL, UTIL (10 starters), BE x3, IR 
 - IR is only for players with injury status OUT.
 - Only starters score. Bench (BE) players score nothing.
 - No games-played limit.
+- A player with "locked": true has a game that has started or tips within 15 minutes. He can't change slots or be dropped today.
 
 TRANSACTIONS:
 - At most 7 adds per weekly matchup. "adds_used" shows how many are used this matchup.

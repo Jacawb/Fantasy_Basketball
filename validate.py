@@ -23,6 +23,8 @@ def validate(d, state):
             errs.append("no adds left this matchup")
     if d.drop_player_id is not None and d.drop_player_id not in roster:
         errs.append(f"drop {d.drop_player_id} is not on your roster")
+    if roster.get(d.drop_player_id, {}).get("locked"):
+        errs.append(f"{name(d.drop_player_id)} is locked (game started) and can't be dropped")
 
     after = {k: v for k, v in roster.items() if k != d.drop_player_id}
     if d.add_player_id in fas:
@@ -56,8 +58,10 @@ def validate(d, state):
             errs.append(f"{p['name']} on IR but status is {p['injury']}, not OUT")
         elif a.slot not in ("BE", "IR") and a.slot not in p["eligible"]:
             errs.append(f"{p['name']} not eligible for {a.slot} (eligible: {p['eligible']})")
-        if a.slot in STARTERS and p["injury"] == "OUT":
+        if a.slot in STARTERS and p["injury"] == "OUT" and not p.get("locked"):
             errs.append(f"{p['name']} is OUT and can't start")
+        if p.get("locked") and a.player_id in roster and a.slot != p["slot"]:
+            errs.append(f"{p['name']} is locked (game started) and must stay in {p['slot']}")
 
     # Trades (pending is already filtered to offers sent to us)
     offered = {str(t["id"]) for t in state["pending"]}

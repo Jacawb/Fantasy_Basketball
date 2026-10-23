@@ -1,7 +1,7 @@
 """state.py - gather league state for the daily Gemini run."""
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import requests
@@ -14,6 +14,7 @@ TEAM_ID = int(os.getenv("TEAM_ID"))
 PT = ZoneInfo("America/Los_Angeles")
 FA_COUNT = 40
 ADDS_LIMIT = 7
+LOCK_BUFFER = timedelta(minutes=15)  # ESPN locks at scheduled tip; Gemini can take a while
 SLOTS = {"PG", "SG", "SF", "PF", "C", "G", "F", "UTIL", "BE", "IR"}
 SLOT_FIX = {"UT": "UTIL"}  # espn-api name -> ours
 
@@ -28,8 +29,9 @@ def get_league():
 
 
 def todays_games():
-    """NBA teams playing today (Pacific date) -> opponent + tip time."""
-    date = datetime.now(PT).strftime("%Y%m%d")
+    """NBA teams playing today (Pacific date) -> opponent, tip time, started."""
+    now = datetime.now(PT)
+    date = now.strftime("%Y%m%d")
     url = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard"
     events = requests.get(url, params={"dates": date}, timeout=20).json().get("events", [])
     games = {}
@@ -38,8 +40,10 @@ def todays_games():
         tip = datetime.fromisoformat(ev["date"].replace("Z", "+00:00")).astimezone(PT)
         teams = [ABBR_FIX.get(c["team"]["abbreviation"], c["team"]["abbreviation"])
                  for c in comp["competitors"]]
+        started = tip <= now + LOCK_BUFFER or ev["status"]["type"]["state"] != "pre"
         for i, t in enumerate(teams):
-            games[t] = {"opp": teams[1 - i], "tip_pt": tip.strftime("%I:%M %p").lstrip("0")}
+            games[t] = {"opp": teams[1 - i], "tip_pt": tip.strftime("%I:%M %p").lstrip("0"),
+                        "started": started}
     return games
 
 
@@ -65,6 +69,7 @@ def player_info(p, games):
         "last7": stat_avg(p, "last_7"),
         "last15": stat_avg(p, "last_15"),
         "plays_today": g is not None,
+        "locked": bool(g and g["started"]),
         "game": g,
     }
 
