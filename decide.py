@@ -4,6 +4,7 @@ import json
 import time
 from typing import Literal, Optional
 
+import httpx
 from dotenv import load_dotenv
 from google import genai
 from google.genai import errors, types
@@ -12,7 +13,9 @@ from pydantic import BaseModel, Field
 load_dotenv()
 # Comma-separated: primary first, then fallbacks
 MODELS = [m.strip() for m in os.getenv("GEMINI_MODEL").split(",") if m.strip()]
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+# 3 min per request (ms) - without this a stalled connection hangs forever
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"),
+                      http_options=types.HttpOptions(timeout=180_000))
 last_model = None  # which model made the latest decision
 
 Slot = Literal["PG", "SG", "SF", "PF", "C", "G", "F", "UTIL", "BE", "IR"]
@@ -86,7 +89,8 @@ def decide(state, error=None):
                 )
                 last_model = model
                 return resp.parsed
-            except errors.ServerError as e:  # 503 overload, wait and retry
+            # 503 overload, dropped connection, or timeout: wait and retry
+            except (errors.ServerError, httpx.TransportError) as e:
                 last_err = e
                 if i < tries - 1:
                     time.sleep(min(60 * 2 ** i, 600))
