@@ -72,11 +72,14 @@ def build_prompt(state, error=None):
     return msg
 
 
-def decide(state, error=None):
+def decide(state, error=None, start=None):
+    """start: begin the chain at this model (retries reuse the one that answered)."""
     global last_model
     last_err = None
-    for idx, model in enumerate(MODELS):
-        tries = 7 if idx == 0 else 3  # primary gets ~35 min, fallbacks ~3 min
+    models = MODELS[MODELS.index(start):] if start in MODELS else MODELS
+    for model in models:
+        # primary gets ~35 min on the first ask; everything else ~3 min
+        tries = 7 if model == MODELS[0] and start is None else 3
         for i in range(tries):
             try:
                 resp = client.models.generate_content(

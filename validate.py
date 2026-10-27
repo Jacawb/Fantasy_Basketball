@@ -75,10 +75,12 @@ def validate(d, state):
 
 def decide_valid(state, max_retries=2):
     """Decide, validate, retry with error feedback. Returns (decision, error)."""
-    from decide import decide
+    import decide as dmod
     err = None
     for _ in range(max_retries + 1):
-        d = decide(state, err)
+        # retries skip straight to the model that just answered, so a busy
+        # primary can't cost ~35 min per retry and hit the 90 min job limit
+        d = dmod.decide(state, err, start=dmod.last_model if err else None)
         err = validate(d, state)
         if err is None:
             return d, None
