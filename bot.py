@@ -6,8 +6,9 @@ import requests
 
 import decide as dmod
 from notify import post
+from lineup import autostart, solve
 from state import gather
-from validate import decide_valid
+from validate import decide_valid, validate
 
 DRY_RUN = os.getenv("DRY_RUN", "true").lower() != "false"
 
@@ -85,7 +86,13 @@ def lineup_changes(d, state):
             for a in d.lineup if current.get(a.player_id, "BE") != a.slot]
 
 
-def format_log(d, state, changes, errors=(), claim_pending=False):
+def auto_decision(lineup, reason):
+    return dmod.Decision(lineup=[dmod.Assignment(player_id=pid, slot=s) for pid, s in lineup.items()],
+                         add_player_id=None, drop_player_id=None, trade_responses=[],
+                         reasoning=f"Auto lineup (Gemini failed): {reason[:300]}")
+
+
+def format_log(d, state, changes, errors=(), claim_pending=False, notes=()):
     names = {p["id"]: p["name"] for p in state["roster"] + state["free_agents"]}
     n = lambda pid: names.get(pid, pid)
     offers = {t["id"]: t for t in state["pending"]}
@@ -110,9 +117,10 @@ def format_log(d, state, changes, errors=(), claim_pending=False):
         lines.append("No moves today")
     if claim_pending and not errors:
         lines.append("⏳ Waiver claim pending, lineup for new player skipped")
+    lines.extend(notes)
     for e in errors:
         lines.append(f"❌ {e}")
-    if dmod.last_model != dmod.MODELS[0]:
+    if dmod.last_model and dmod.last_model != dmod.MODELS[0]:
         lines.append(f"⚠️ Fallback model used: {dmod.last_model}")
     lines.append(f"\n> {d.reasoning}")
     if DRY_RUN:
@@ -122,10 +130,28 @@ def format_log(d, state, changes, errors=(), claim_pending=False):
 
 def run():
     state = gather()
-    d, err = decide_valid(state)
+    notes = []
+    try:
+        d, err = decide_valid(state)
+    except Exception as e:  # every Gemini model failed
+        d, err = None, f"Gemini failed: {e}"
     if d is None:
-        post(f"⚠️ {state['date']}: skipped day, invalid after retries:\n{err}")
-        return
+        # Never skip the day: keep the roster, set the lineup ourselves
+        auto = solve(state)
+        if auto is None or validate(d := auto_decision(auto, err), state):
+            post(f"⚠️ {state['date']}: skipped day, invalid after retries:\n{err}")
+            return
+        notes.append("🛟 Gemini had no legal lineup; auto lineup used, no add/drop or trades today")
+    else:
+        lineup, gained = autostart({a.player_id: a.slot for a in d.lineup}, state,
+                                   d.add_player_id, d.drop_player_id)
+        fixed = d.model_copy(update={"lineup": [dmod.Assignment(player_id=pid, slot=s)
+                                                for pid, s in lineup.items()]})
+        if gained and validate(fixed, state) is None:
+            d = fixed
+            names = {p["id"]: p["name"] for p in state["roster"] + state["free_agents"]}
+            notes.append("🛟 Auto-started (playing today, were benched): "
+                         + ", ".join(names.get(pid, str(pid)) for pid in gained))
 
     changes = lineup_changes(d, state)
     errors, claim_pending = [], False
@@ -150,7 +176,7 @@ def run():
             except EspnError as e:
                 errors.append(str(e))
 
-    post(format_log(d, state, changes, errors, claim_pending))
+    post(format_log(d, state, changes, errors, claim_pending, notes))
 
 
 if __name__ == "__main__":

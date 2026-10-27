@@ -47,7 +47,8 @@ def validate(d, state):
     # Slot capacity
     for slot, n in Counter(a.slot for a in d.lineup).items():
         if n > CAPACITY[slot]:
-            errs.append(f"{n} players in {slot} (max {CAPACITY[slot]})")
+            who = ", ".join(str(name(a.player_id)) for a in d.lineup if a.slot == slot)
+            errs.append(f"{n} players in {slot} (max {CAPACITY[slot]}): {who}")
 
     # Eligibility + injuries
     for a in d.lineup:

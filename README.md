@@ -16,12 +16,13 @@ state.py  ──►  decide.py  ──►  validate.py  ──►  bot.py  ─�
 2. **Decide** ([decide.py](decide.py)): sends that state to Gemini with a rules-only system prompt and gets back a structured `Decision`: a slot for every player, an optional add/drop, accept/decline for each trade offer, and a short reasoning.
    - `GEMINI_MODEL` can list several models separated by commas. The first is the primary model and the rest are fallbacks.
    - When a model returns a 503 (overloaded), the bot retries with exponential backoff: about 35 minutes for the primary and about 3 minutes for each fallback. On a 404 or 429, it moves on to the next model.
-3. **Validate** ([validate.py](validate.py)): checks legality only (roster size, slot capacity, position eligibility, the 4-center limit, IR rules, OUT players not starting, add limits, and real trade IDs). Moves that are legal but bad still pass. When a decision fails, the error goes back to Gemini, which gets up to 2 retries. After that the day is skipped.
-4. **Submit** ([bot.py](bot.py)): sends the moves to ESPN's private write API using your session cookies:
+3. **Validate** ([validate.py](validate.py)): checks legality only (roster size, slot capacity, position eligibility, the 4-center limit, IR rules, OUT players not starting, add limits, and real trade IDs). Moves that are legal but bad still pass. When a decision fails, the error goes back to Gemini, which gets up to 2 retries.
+4. **Lineup safety net** ([lineup.py](lineup.py)): if Gemini benches a player who plays today while starting one who doesn't, the bot swaps them in (the only override, since that's never better). If Gemini can't produce a legal decision at all, the bot sets the lineup itself and skips the add/drop and trades for that day instead of skipping the whole day.
+5. **Submit** ([bot.py](bot.py)): sends the moves to ESPN's private write API using your session cookies:
    - It runs the add/drop first. When ESPN says the player is on waivers, the bot retries the move as a waiver claim.
    - All lineup changes go out in a single request, so swaps don't collide.
    - It then sends the trade accept/decline responses.
-5. **Log** ([notify.py](notify.py)): posts the day's moves, the matchup score, any errors, and Gemini's reasoning to a Discord webhook. When the bot crashes, it posts the traceback there too.
+6. **Log** ([notify.py](notify.py)): posts the day's moves, the matchup score, any errors, and Gemini's reasoning to a Discord webhook. When the bot crashes, it posts the traceback there too.
 
 ## League assumptions
 
