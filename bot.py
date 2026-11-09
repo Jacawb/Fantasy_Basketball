@@ -130,7 +130,8 @@ def format_log(d, state, changes, errors=(), claim_pending=False, notes=()):
 
 def run():
     state = gather()
-    notes = []
+    # Set by the workflow when the latest packages broke and it fell back
+    notes = [os.environ["DEPS_NOTE"]] if os.getenv("DEPS_NOTE") else []
     try:
         d, err = decide_valid(state)
     except Exception as e:  # every Gemini model failed

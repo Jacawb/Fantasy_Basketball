@@ -2,9 +2,9 @@
 import os
 import json
 import time
+import importlib
 from typing import Literal, Optional
 
-import httpx
 from dotenv import load_dotenv
 from google import genai
 from google.genai import errors, types
@@ -17,6 +17,21 @@ MODELS = [m.strip() for m in os.getenv("GEMINI_MODEL").split(",") if m.strip()]
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"),
                       http_options=types.HttpOptions(timeout=180_000))
 last_model = None  # which model made the latest decision
+
+
+def _transport_errors():
+    """Dropped-connection errors from whichever HTTP library google-genai uses
+    (httpx before 3.0, httpx2 from 3.0), so retries work on either version."""
+    errs = []
+    for name in ("httpx", "httpx2"):
+        try:
+            errs.append(importlib.import_module(name).TransportError)
+        except (ImportError, AttributeError):
+            pass
+    return tuple(errs)
+
+
+TRANSPORT_ERRORS = _transport_errors()
 
 Slot = Literal["PG", "SG", "SF", "PF", "C", "G", "F", "UTIL", "BE", "IR"]
 
@@ -94,7 +109,7 @@ def decide(state, error=None, start=None):
                 last_model = model
                 return resp.parsed
             # 503 overload, dropped connection, or timeout: wait and retry
-            except (errors.ServerError, httpx.TransportError) as e:
+            except (errors.ServerError, *TRANSPORT_ERRORS) as e:
                 last_err = e
                 if i < tries - 1:
                     time.sleep(min(60 * 2 ** i, 600))

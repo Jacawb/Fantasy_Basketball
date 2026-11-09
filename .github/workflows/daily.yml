@@ -4,12 +4,24 @@ on:
   schedule:
     - cron: "0 15 * * *"   # backup - GitHub runs this hours late, skipped if today already ran
 permissions:
-  actions: read    # lets the guard list earlier runs
-  contents: read
+  actions: read     # lets the guard list earlier runs
+  contents: write   # lets the run save requirements.lock after a success
 jobs:
   run:
     runs-on: ubuntu-24.04
     timeout-minutes: 90   # kill a hung run instead of waiting 6h
+    env:
+      LEAGUE_ID: ${{ secrets.LEAGUE_ID }}
+      TEAM_ID: ${{ secrets.TEAM_ID }}
+      ESPN_S2: ${{ secrets.ESPN_S2 }}
+      SWID: ${{ secrets.SWID }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      DRY_RUN: "false"
+    defaults:
+      run:
+        shell: bash   # bash -eo pipefail, so `| tee` keeps the real exit code
     steps:
       # Scheduled backup only: skip if a run already succeeded today (Pacific time)
       - id: guard
@@ -27,16 +39,55 @@ jobs:
       - if: steps.guard.outputs.skip != 'true'
         uses: actions/setup-python@v6
         with: { python-version: "3.12" }
+
+      # 1. Try the newest version of every package
       - if: steps.guard.outputs.skip != 'true'
-        run: pip install -r requirements.txt
+        run: pip install --upgrade -r requirements.txt
+      - id: smoke
+        if: steps.guard.outputs.skip != 'true'
+        continue-on-error: true
+        run: python smoke.py 2>&1 | tee -a run.log
+
+      # 2. Newest packages broke startup: go back to the last set that worked
+      - id: fallback
+        if: steps.guard.outputs.skip != 'true' && steps.smoke.outcome == 'failure'
+        run: |
+          pip install -r requirements.lock 2>&1 | tail -5
+          python smoke.py 2>&1 | tee -a run.log
+          echo "DEPS_NOTE=⚠️ Newest packages broke startup, ran on last known good versions: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> "$GITHUB_ENV"
+
+      # 3. The actual daily run
       - if: steps.guard.outputs.skip != 'true'
-        run: python bot.py
-        env:
-          LEAGUE_ID: ${{ secrets.LEAGUE_ID }}
-          TEAM_ID: ${{ secrets.TEAM_ID }}
-          ESPN_S2: ${{ secrets.ESPN_S2 }}
-          SWID: ${{ secrets.SWID }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DRY_RUN: "false"
+        run: python bot.py 2>&1 | tee -a run.log
+
+      # 4. Newest packages worked end to end: they become the new fallback
+      - name: Save last known good versions
+        if: steps.guard.outputs.skip != 'true' && steps.smoke.outcome == 'success'
+        continue-on-error: true   # never fail a good run over bookkeeping
+        run: |
+          { head -2 requirements.lock; pip freeze; } > requirements.lock.new
+          mv requirements.lock.new requirements.lock
+          if git diff --quiet requirements.lock; then echo "versions unchanged"; exit 0; fi
+          git diff --stat requirements.lock
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update last known good package versions" requirements.lock
+          git pull --rebase && git push
+
+      # Anything above failed: say so in Discord, with the end of the log
+      - name: Alert Discord
+        if: failure()
+        run: |
+          python3 - <<'EOF'
+          import json, os, urllib.request
+          url = os.environ.get("DISCORD_WEBHOOK")
+          run = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+          try:
+              tail = open("run.log", encoding="utf-8", errors="replace").read()[-1500:]
+          except OSError:
+              tail = "(no log - failed before the bot started)"
+          msg = f"🚨 daily-bot run failed: {run}\n```{tail}```"
+          req = urllib.request.Request(url, json.dumps({"content": msg[:1990]}).encode(),
+                                       {"Content-Type": "application/json", "User-Agent": "daily-bot"})
+          urllib.request.urlopen(req, timeout=20)
+          EOF

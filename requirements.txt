@@ -1,7 +1,6 @@
 espn-api
-google-genai<3
+google-genai
 python-dotenv
 requests
 pydantic
 tzdata
-httpx
