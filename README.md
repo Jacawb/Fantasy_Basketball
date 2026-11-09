@@ -15,7 +15,7 @@ state.py  ──►  decide.py  ──►  validate.py  ──►  bot.py  ─�
 1. **Gather** ([state.py](state.py)): reads the league through `espn-api` and ESPN's scoreboard API. This gives today's roster, the top 40 free agents, who plays today (with tip times in Pacific), recent scoring averages, injuries, the current matchup score, adds used this week, and pending trade offers.
 2. **Decide** ([decide.py](decide.py)): sends that state to Gemini with a rules-only system prompt and gets back a structured `Decision`: a slot for every player, an optional add/drop, accept/decline for each trade offer, and a short reasoning.
    - `GEMINI_MODEL` can list several models separated by commas. The first is the primary model and the rest are fallbacks.
-   - When a model returns a 503 (overloaded), the bot retries with exponential backoff: about 35 minutes for the primary and about 3 minutes for each fallback. On a 404 or 429, it moves on to the next model.
+   - When a model returns a 503 (overloaded), times out, or drops the connection, the bot retries with exponential backoff: about 35 minutes for the primary and about 3 minutes for each fallback. On a 404 or 429, it moves on to the next model. Each request times out after 3 minutes, so a stalled connection can't hang the run.
 3. **Validate** ([validate.py](validate.py)): checks legality only (roster size, slot capacity, position eligibility, the 4-center limit, IR rules, OUT players not starting, add limits, and real trade IDs). Moves that are legal but bad still pass. When a decision fails, the error goes back to Gemini, which gets up to 2 retries.
 4. **Lineup safety net** ([lineup.py](lineup.py)): if Gemini benches a player who plays today while starting one who doesn't, the bot swaps them in (the only override, since that's never better). If Gemini can't produce a legal decision at all, the bot sets the lineup itself and skips the add/drop and trades for that day instead of skipping the whole day.
 5. **Submit** ([bot.py](bot.py)): sends the moves to ESPN's private write API using your session cookies:
@@ -93,6 +93,11 @@ python decide.py
 Gets a single Gemini decision without validating it. Nothing is submitted.
 
 ```bash
+python smoke.py
+```
+Quick startup check: imports every module and reads ESPN, with no Gemini call, no writes, and no Discord post. The scheduled workflow runs this before the bot.
+
+```bash
 python validate.py
 ```
 Decides and validates, retrying on errors. Nothing is submitted.
@@ -126,15 +131,30 @@ Uploads the ranked list as your ESPN pre-draft list, with unranked players appen
 
 ## Scheduled runs (GitHub Actions)
 
-[.github/workflows/daily.yml](.github/workflows/daily.yml) runs `bot.py` every day at 15:00 UTC (8 AM PDT / 7 AM PST) with `DRY_RUN=false`. You can also trigger it by hand from the Actions tab.
+[.github/workflows/daily.yml](.github/workflows/daily.yml) runs `bot.py` once a day with `DRY_RUN=false`.
 
-Add these repository secrets under **Settings → Secrets and variables → Actions**: `LEAGUE_ID`, `TEAM_ID`, `ESPN_S2`, `SWID`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `DISCORD_WEBHOOK`.
+- **Triggers:** cron-job.org starts the workflow at 8 AM Pacific through `workflow_dispatch`, and the same button works by hand from the Actions tab. A GitHub `schedule` at 15:00 UTC acts as a backup. GitHub often starts it hours late, so it skips itself when a run has already succeeded that day (Pacific time).
+- **Secrets:** add these under **Settings → Secrets and variables → Actions**: `LEAGUE_ID`, `TEAM_ID`, `ESPN_S2`, `SWID`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `DISCORD_WEBHOOK`.
+
+### Package updates and fallback
+
+Packages update themselves, with a fallback to the last versions that worked:
+
+1. Each run installs the newest version of everything in `requirements.txt` (nothing is pinned).
+2. It runs `smoke.py`. If the newest packages can't even start the bot, it reinstalls the exact versions in [requirements.lock](requirements.lock), runs on those, and adds a ⚠️ note to the Discord summary.
+3. After a successful run on the newest packages, the workflow writes their exact versions to `requirements.lock` and commits it as `github-actions[bot]`. That's why the workflow needs `contents: write`.
+4. If any step fails, a final step posts **🚨 daily-bot run failed** to Discord, with the run link and the end of the log. This works even when Python itself can't start the bot.
+
+Because the workflow commits to `main`, run `git pull` before making local changes. Don't edit `requirements.lock` by hand: list new dependencies in `requirements.txt`, and the next successful run adds them to the lock.
+
+The fallback only covers breakage at startup. If new packages pass the smoke test but fail later in the run, you get the failure alert, but that day isn't retried on the old versions.
 
 ## Caveats
 
 - ESPN's write endpoints are undocumented. The payloads copy what ESPN's web app sends. The `TRADE_ACCEPT` transaction type is a guess, because only the decline request was captured.
 - `ESPN_S2` and `SWID` expire from time to time. When writes start failing with auth errors, refresh them in `.env` and in the GitHub secrets.
 - When a waiver claim is pending, the bot doesn't put the new player in the lineup that day.
+- `decide.py` catches dropped connections from either `httpx` or `httpx2`, because google-genai switched HTTP libraries in 3.0. Both 2.x and 3.x work.
 
 ## Project layout
 
@@ -146,5 +166,9 @@ Add these repository secrets under **Settings → Secrets and variables → Acti
 | `validate.py` | Legality checks and the retry loop |
 | `notify.py` | Discord webhook poster |
 | `rankings.py` / `push_rankings.py` | Pre-draft rankings from Gemini and upload to ESPN |
-| `test.py` | ESPN connection smoke test |
+| `test.py` | ESPN connection check |
+| `smoke.py` | Startup check the workflow runs before the bot |
+| `requirements.txt` | Dependencies, unpinned |
+| `requirements.lock` | Last known good versions, updated by the workflow |
+| `.github/workflows/daily.yml` | Daily run, package fallback, and failure alert |
 | `rankings.json` / `rankings.txt` | Latest generated draft rankings |
