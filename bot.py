@@ -81,7 +81,9 @@ def submit_trade(tx_id, action, state):
 def lineup_changes(d, state):
     """Only the moves that differ from the current lineup."""
     current = {p["id"]: p["slot"] for p in state["roster"]}
-    # new adds land on the bench
+    # ESPN puts a new add straight into the dropped player's slot (bench if no drop)
+    if d.add_player_id:
+        current[d.add_player_id] = current.get(d.drop_player_id, "BE")
     return [(a.player_id, current.get(a.player_id, "BE"), a.slot)
             for a in d.lineup if current.get(a.player_id, "BE") != a.slot]
 
@@ -121,7 +123,8 @@ def format_log(d, state, changes, errors=(), claim_pending=False, notes=()):
     for e in errors:
         lines.append(f"❌ {e}")
     if dmod.last_model and dmod.last_model != dmod.MODELS[0]:
-        lines.append(f"⚠️ Fallback model used: {dmod.last_model}")
+        why = ", ".join(f"{m}: {r}" for m, r in dmod.skipped.items())
+        lines.append(f"⚠️ Fallback model used: {dmod.last_model}" + (f" ({why})" if why else ""))
     lines.append(f"\n> {d.reasoning}")
     if DRY_RUN:
         lines.insert(0, "🧪 DRY RUN (nothing submitted)")
@@ -171,6 +174,15 @@ def run():
                 submit_lineup(changes, state)
             except EspnError as e:
                 errors.append(str(e))
+                # one bad item rejects the whole request; save the rest without the new player
+                rest = [c for c in changes if c[0] != d.add_player_id]
+                if d.add_player_id and rest != changes:
+                    try:
+                        submit_lineup(rest, state)
+                        errors.append("Lineup resubmitted without the new player")
+                        changes = rest
+                    except EspnError as e2:
+                        errors.append(str(e2))
         for t in d.trade_responses:
             try:
                 submit_trade(t.transaction_id, t.action, state)

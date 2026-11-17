@@ -17,6 +17,7 @@ MODELS = [m.strip() for m in os.getenv("GEMINI_MODEL").split(",") if m.strip()]
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"),
                       http_options=types.HttpOptions(timeout=180_000))
 last_model = None  # which model made the latest decision
+skipped = {}  # model -> short reason it was passed over, for the Discord log
 
 
 def _transport_errors():
@@ -118,6 +119,8 @@ def decide(state, error=None, start=None):
                     last_err = e
                     break
                 raise
+        skipped[model] = (f"{last_err.code} {last_err.status}" if isinstance(last_err, errors.APIError)
+                          else type(last_err).__name__)
     raise last_err  # every model failed
 
 
