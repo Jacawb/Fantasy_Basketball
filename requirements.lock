@@ -2,13 +2,13 @@
 # workflow after each successful run; used as the fallback if the latest break.
 annotated-types==0.8.0
 anyio==4.16.0
-certifi==2026.10.23
+certifi==2026.11.20
 cffi==2.1.1
 charset-normalizer==3.5.2
 cryptography==50.0.2
 distro==1.9.0
 espn_api==1.0.1
-google-auth==2.62.2
+google-auth==2.63.0
 google-genai==3.6.1
 h11==0.16.0
 httpcore2==2.3.0
