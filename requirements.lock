@@ -8,7 +8,7 @@ charset-normalizer==3.5.2
 cryptography==50.0.2
 distro==1.9.0
 espn_api==1.0.1
-google-auth==2.63.0
+google-auth==2.63.1
 google-genai==3.6.1
 h11==0.16.0
 httpcore2==2.3.0
